@@ -1,99 +1,70 @@
+import streamlit as st
 import pandas as pd
-import openai
-import plotly.express as px
+import matplotlib.pyplot as plt
+import seaborn as sns
+from langchain.agents import create_pandas_dataframe_agent
+from langchain.llms import OpenAI
+from langchain.memory import ConversationBufferMemory
 import os
 
-# Configurar tu API Key desde variable de entorno o secrets
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configura tu clave de API
+st.set_page_config(page_title="Agente IA - PadronizaPY", layout="wide")
+st.title("🤖 Agente Inteligente - Pecuaria Smart")
+st.markdown("Hazle preguntas sobre los datos de faena. Ejemplo: **¿Cuál fue el promedio de peso de carcasa?**")
 
-# URL del CSV de Google Sheets
-CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTfdT08aPWvHj4uX-0MEiDSwFcTTbN7aEd8Hb2nQX7Oqs-B_UWyIygFEI4KG-HXfeyznJ65b-VzQR-/pub?gid=987916598&single=true&output=csv"
+# Lectura del CSV actualizado desde Google Sheets
+csv_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTfdT08aPWvHj4uX-0MEiDSwFcTTbN7aEd8Hb2nQX7Oqs-B_UWyIygFEI4KG-HXfeyznJ65b-VzQR-/pub?gid=987916598&single=true&output=csv"
 
-# Cargar los datos desde el CSV online
-def cargar_datos():
-    df = pd.read_csv(CSV_URL)
-    return df
-
-# Limpiar nombres de columnas
-def limpiar_datos(df):
+try:
+    df = pd.read_csv(csv_url, sep=',')
     df.columns = [col.strip().lower().replace(" ", "_") for col in df.columns]
-    return df
+    st.success("Datos cargados correctamente.")
+except Exception as e:
+    st.error(f"Error al cargar datos: {e}")
+    st.stop()
 
-# Preguntar a OpenAI e interpretar si hay que graficar
-def responder_pregunta_con_grafico(pregunta, df):
-    prompt = f"""
-Sos un analista experto en faenas ganaderas. Tenés una tabla con estas columnas:
-{list(df.columns)}
+# Muestra una parte del dataset si el usuario quiere
+with st.expander("🔍 Ver datos cargados"):
+    st.dataframe(df.head(10))
 
-Te paso una pregunta del usuario: "{pregunta}"
+# Configura el LLM de OpenAI (reemplaza tu clave real)
+openai_api_key = st.secrets["OPENAI_API_KEY"] if "OPENAI_API_KEY" in st.secrets else os.getenv("OPENAI_API_KEY")
+if not openai_api_key:
+    st.error("Falta la clave de API de OpenAI. Defínela como variable de entorno o en Streamlit Secrets.")
+    st.stop()
 
-Quiero que respondas lo siguiente:
-1. RESPUESTA: texto claro y directo basado en los datos.
-2. GRAFICO: si se puede graficar algo relacionado, indicá las columnas para eje X e Y en este formato:
-GRAFICO: x=columna_x, y=columna_y, tipo=tipo_de_grafico
-Si no se puede graficar, escribí GRAFICO: NO
+llm = OpenAI(temperature=0, openai_api_key=openai_api_key)
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+agent = create_pandas_dataframe_agent(llm, df, verbose=False)
 
-Ejemplo de salida:
-RESPUESTA: El frigorífico con más animales fue...
-GRAFICO: x=ciudad, y=precio_del_gordo, tipo=barras
+# Input del usuario
+question = st.text_input("📨 Escribe tu pregunta sobre los datos", placeholder="Ejemplo: ¿Cuál fue el promedio de peso de frigorífico en julio?")
 
-Usá solo columnas presentes en los datos. No inventes nada.
-Primeras filas de la tabla:
-{df.head(5).to_string()}
-"""
+if question:
+    with st.spinner("Pensando..."):
+        try:
+            response = agent.run(question)
+            st.markdown(f"**Respuesta:** {response}")
+        except Exception as e:
+            st.error(f"Ocurrió un error: {e}")
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.2
-    )
+# Expander para gráficos rápidos
+with st.expander("📊 Crear gráfico rápido"):
+    col1, col2 = st.columns(2)
+    with col1:
+        x_col = st.selectbox("Variable en el eje X", df.columns)
+    with col2:
+        y_col = st.selectbox("Variable en el eje Y", df.columns)
 
-    contenido = response['choices'][0]['message']['content']
-    partes = contenido.split("GRAFICO:")
-    texto = partes[0].replace("RESPUESTA:", "").strip()
-    grafico = partes[1].strip() if len(partes) > 1 else "NO"
+    chart_type = st.radio("Tipo de gráfico", ["scatter", "line", "bar"], horizontal=True)
 
-    return texto, grafico
-
-# Generar gráfico con Plotly
-def mostrar_grafico(df, grafico):
-    try:
-        if "NO" in grafico:
-            return None
-
-        # Extraer info
-        partes = grafico.replace(" ", "").split(",")
-        x = partes[0].split("=")[1]
-        y = partes[1].split("=")[1]
-        tipo = partes[2].split("=")[1]
-
-        df[y] = pd.to_numeric(df[y], errors="coerce")
-
-        if tipo == "barras":
-            fig = px.bar(df, x=x, y=y, title=f"{y} por {x}")
-        elif tipo == "linea":
-            fig = px.line(df, x=x, y=y, title=f"{y} en el tiempo")
-        elif tipo == "dispersión":
-            fig = px.scatter(df, x=x, y=y, title=f"{x} vs {y}")
-        else:
-            return None
-
-        fig.show()
-    except Exception as e:
-        print("No se pudo generar el gráfico:", e)
-
-# Ejecución principal
-if __name__ == "__main__":
-    pregunta = input("¿Qué querés saber sobre los datos? ➜ ")
-
-    df = cargar_datos()
-    df = limpiar_datos(df)
-
-    respuesta, grafico = responder_pregunta_con_grafico(pregunta, df)
-
-    print("\n🧠 Respuesta basada en datos:")
-    print(respuesta)
-
-    if "NO" not in grafico:
-        print("\n📊 Generando gráfico sugerido por IA...")
-        mostrar_grafico(df, grafico)
+    if st.button("Generar gráfico"):
+        plt.figure(figsize=(10, 5))
+        if chart_type == "scatter":
+            sns.scatterplot(data=df, x=x_col, y=y_col)
+        elif chart_type == "line":
+            sns.lineplot(data=df, x=x_col, y=y_col)
+        elif chart_type == "bar":
+            sns.barplot(data=df, x=x_col, y=y_col, ci=None)
+        plt.xticks(rotation=45)
+        st.pyplot(plt)
