@@ -9,10 +9,10 @@ import requests
 st.set_page_config(page_title="Pecuaria Smart Predict", layout="wide")
 st.title("📈 Pecuaria Smart Predict")
 
-# Leer credenciales del archivo JSON
-with open("gcp_service_account.json", "r") as file:
-    import json
-    service_account_info = json.load(file)
+import json
+import streamlit as st
+
+service_account_info = st.secrets["gcp_service_account"]
 
 credentials = service_account.Credentials.from_service_account_info(service_account_info)
 authed_session = AuthorizedSession(credentials)
