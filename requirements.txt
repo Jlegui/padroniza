@@ -1,12 +1,7 @@
 streamlit
 pandas
-plotly
 openai
+langchain==0.0.208
 matplotlib
 seaborn
-langchain==0.0.208
-pandas
-openai
-streamlit
-langchain
-langchain-experimental
+
