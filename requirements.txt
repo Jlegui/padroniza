@@ -4,3 +4,4 @@ plotly
 openai
 matplotlib
 seaborn
+from langchain.agents import create_pandas_dataframe_agent
