@@ -4,5 +4,9 @@ plotly
 openai
 matplotlib
 seaborn
-langchain==0.0.208
-
+langchain>=0.1.0
+pandas
+openai
+streamlit
+langchain
+langchain-experimental
