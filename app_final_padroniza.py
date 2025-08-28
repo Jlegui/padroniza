@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # Imagen/logo superior
 st.image("https://i.imgur.com/BQn3Vkb.png", width=150)
-st.title("📊 Consulta de Faena - PadronizaPY")
+st.title("Consulta de Faena - PadronizaPY 🐂🥩📊")
 
 # Leer credenciales desde st.secrets
 service_account_info = st.secrets["gcp_service_account"]
@@ -31,7 +31,7 @@ try:
     st.dataframe(df, use_container_width=True)
 
     # Zona de preguntas al estilo GPT
-    st.subheader("🤖 Haz preguntas sobre la faena")
+    st.subheader("Haz preguntas sobre la faena 🤠")
 
     import openai
     from langchain.agents import create_pandas_dataframe_agent
