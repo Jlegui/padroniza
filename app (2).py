@@ -14,7 +14,7 @@ def load_data():
 
 df = load_data()
 
-st.title("Asistente Inteligente sobre tus Datos CSV 📊")
+st.title("PadronizaPY - Consulta de Faenas 🐂🥩📊")
 st.markdown("Haz preguntas en lenguaje natural sobre los datos y el modelo responderá.")
 
 # Mostrar una muestra de los datos
