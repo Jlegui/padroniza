@@ -9,7 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 # ---------- CONFIGURACIÓN DE LA APP ----------
 st.set_page_config(page_title="PadronizaPY - Consulta de Faenas", layout="wide")
-st.title("📋 PadronizaPY - Consulta de Faenas")
+st.title("📋 PadronizaPY - Consulta de Faenas 🐂🥩📊")
 
 # ---------- LOGO ----------
 logo_url = "https://i.imgur.com/qxGEh0S.png"  # Reemplazar por tu logo si es necesario
@@ -24,7 +24,7 @@ try:
     st.dataframe(df)
 
     # ---------- SECCIÓN GPT SIMULADO PARA CONSULTAS ----------
-    st.subheader("🤖 Pregunta algo sobre los datos")
+    st.subheader("Pregunta algo sobre los datos 🤠")
 
     pregunta = st.text_input("Escribe tu pregunta:")
     if pregunta:
