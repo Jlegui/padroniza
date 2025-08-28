@@ -10,7 +10,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 # Cargar CSV (ajustar nombre si es necesario)
 @st.cache_data
 def load_data():
-    return pd.read_csv("data.csv")
+    return pd.read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTTfdT08aPWvHj4uX-0MEiDSwFcTTbN7aEd8Hb2nQX7Oqs-B_UWyIygFEI4KG-HXfeyznJ65b-VzQR-/pub?gid=987916598&single=true&output=csv")
 
 df = load_data()
 
