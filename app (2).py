@@ -15,7 +15,7 @@ def load_data():
 df = load_data()
 
 st.title("PadronizaPY - Consulta de Faenas 🐂🥩📊")
-st.markdown("Haz preguntas en lenguaje natural sobre los datos y el modelo responderá.")
+st.markdown("Haz preguntas sobre las faenas que Padroniza-AI🤖 responderá.")
 
 # Mostrar una muestra de los datos
 if st.checkbox("Mostrar datos"):
@@ -38,7 +38,7 @@ Respuesta:"""
 
     with st.spinner("Pensando..."):
         respuesta = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Eres un asistente experto en análisis de datos, responde con precisión y claridad."},
                 {"role": "user", "content": prompt},
